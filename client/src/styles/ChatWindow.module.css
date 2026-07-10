@@ -1,0 +1,58 @@
+.voiceWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.voiceBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #FF9933;
+  color: #0B2545;
+  border: none;
+  border-radius: 24px;
+  padding: 0 16px;
+  height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.voiceBtn:hover { background: #FFB366; }
+
+.voiceRecording {
+  background: #E63946;
+  color: white;
+  animation: pulse 1s infinite;
+}
+
+.voiceProcessing {
+  background: #0B2545;
+  color: white;
+  cursor: wait;
+}
+
+.voiceIcon { font-size: 1.1rem; }
+.voiceLabel { font-size: 0.8rem; }
+
+.listeningDot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #E63946;
+  animation: blink 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
