@@ -4,7 +4,7 @@ const { extractProfile, getMissingFields, askForMissingInfo, generateReply } = r
 const { matchSchemes } = require('../services/schemeMatcher');
 const Conversation = require('../models/Conversation');
 
-// In-memory session state (profile + last-asked fields) — no DB model change needed
+// In-memory session state (profile + last-asked fields)
 const sessionState = new Map();
 
 router.post('/', async (req, res) => {
@@ -17,16 +17,19 @@ router.post('/', async (req, res) => {
     const updatedProfile = await extractProfile(message, state.profile, state.lastAskedFields);
     const missing = getMissingFields(updatedProfile);
 
-    sessionState.set(sessionId, { profile: updatedProfile, lastAskedFields: missing });
-
     let reply, matched = [], profileComplete = false;
 
     if (missing.length > 0) {
+      sessionState.set(sessionId, { profile: updatedProfile, lastAskedFields: missing });
       reply = await askForMissingInfo(missing, message);
     } else {
       matched = matchSchemes(updatedProfile, message);
       reply = await generateReply(message, matched, message);
       profileComplete = true;
+
+      // Reset the session after a completed match — next request starts
+      // the eligibility questions fresh instead of reusing this profile
+      sessionState.set(sessionId, { profile: {}, lastAskedFields: [] });
     }
 
     await Conversation.create({
