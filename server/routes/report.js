@@ -3,18 +3,17 @@ const express = require('express');
 const PDFDocument = require('pdfkit');
 const router = express.Router();
 const schemes = require('../data/schemes.json');
-const { callLLM } = require('../services/llmService');
+const { chatComplete } = require('../services/sarvam');
 
 router.post('/', async (req, res) => {
   try {
-    const { schemeSlugs, language, profile } = req.body;
+    const { schemeSlugs, language } = req.body;
     const matched = schemes.filter((s) => schemeSlugs.includes(s.slug));
 
-    // Translate content into the requested language via LLM
-    const translated = await callLLM([
-      { role: 'system', content: `Translate the following scheme details into ${language}. Return ONLY a JSON array matching the input structure, same field names, translated values.` },
-      { role: 'user', content: JSON.stringify(matched.map(s => ({ name: s.name, description: s.description, benefits: s.benefits, documents: s.documents, applicationSteps: s.applicationSteps }))) }
-    ]);
+    const translated = await chatComplete(
+      `Translate the following scheme details into ${language || 'en-IN'}. Return ONLY a JSON array matching the input structure, same field names, translated values.`,
+      JSON.stringify(matched.map(s => ({ name: s.name, description: s.description, benefits: s.benefits, documents: s.documents, applicationSteps: s.applicationSteps })))
+    );
 
     let content;
     try { content = JSON.parse(translated.replace(/```json|```/g, '').trim()); }

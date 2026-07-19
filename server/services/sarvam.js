@@ -125,23 +125,37 @@ const chatComplete = async (systemPrompt, userText, opts = {}) => {
   try {
     const messages = [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: userText }
+      { role: 'user', content: userText || '' }
     ];
 
     const res = await axios.post(`${BASE}/v1/chat/completions`, {
       model: 'sarvam-30b',
       messages,
-      temperature: opts.temperature ?? 0.3
-    }, { headers, timeout: 15000 });
+      temperature: opts.temperature ?? 0.3,
+      max_tokens: 800,
+      reasoning_effort: null // disables thinking mode — this is the real fix
+    }, { headers, timeout: 30000 });
 
-    let reply = res.data.choices[0].message.content;
+    const choice = res.data.choices?.[0]?.message;
+    let reply = choice?.content;
+
+    if (!reply && choice?.reasoning_content) {
+      console.error('❌ LLM content still empty, finish_reason:', res.data.choices?.[0]?.finish_reason);
+      const reasoning = choice.reasoning_content;
+      const lines = reasoning.split(/\n+/).filter(l => l.trim().length > 20);
+      reply = lines[lines.length - 1]?.trim();
+    }
+
+    if (!reply) {
+      return "Sorry, I'm having trouble responding right now. Could you please rephrase that?";
+    }
+
     return reply.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
   } catch (error) {
-    console.error("❌ LLM Error:", error.response?.data || error.message);
+    console.error("❌ LLM Error:", error.response?.status, error.response?.data?.error?.message || error.message);
     throw error;
   }
 };
-
 const speechToText = async (audioBuffer) => {
   const form = new FormData();
   form.append('file', audioBuffer, {
