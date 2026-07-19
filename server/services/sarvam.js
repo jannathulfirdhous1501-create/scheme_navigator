@@ -142,18 +142,23 @@ const chatComplete = async (systemPrompt, userText, opts = {}) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────
-// Speech to Text
-// ─────────────────────────────────────────────────────────
 const speechToText = async (audioBuffer) => {
   const form = new FormData();
-  form.append('file', audioBuffer, { filename: 'audio.wav', contentType: 'audio/wav' });
+  form.append('file', audioBuffer, {
+    filename: 'audio.wav',
+    contentType: 'audio/wav',
+    knownLength: audioBuffer.length   // ADD THIS
+  });
   form.append('model', 'saaras:v3');
   form.append('language_code', 'unknown');
 
   try {
     const res = await axios.post(`${BASE}/speech-to-text`, form, {
-      headers: { ...form.getHeaders(), 'api-subscription-key': KEY },
+      headers: {
+        ...form.getHeaders(),
+        'Content-Length': form.getLengthSync(),   // ADD THIS
+        'api-subscription-key': KEY
+      },
       timeout: 60000
     });
     return {

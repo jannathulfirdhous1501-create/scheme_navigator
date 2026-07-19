@@ -1,32 +1,27 @@
 const express = require('express');
 const multer = require('multer');
+const { speechToText, textToSpeech } = require('../services/sarvam');
 const router = express.Router();
-const sarvam = require('../services/sarvam');
-
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post('/stt', upload.single('audio'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: 'audio file is required' });
-    const result = await sarvam.speechToText(req.file.buffer);
+    const result = await speechToText(req.file.buffer); // already real WAV now, no conversion needed
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: 'Speech-to-text failed', debug: err.message });
+    console.error('[voice/stt] Error:', err.message);
+    res.status(500).json({ error: 'STT failed' });
   }
 });
 
 router.post('/tts', async (req, res) => {
   try {
-    const { text, languageCode = 'en-IN' } = req.body;
-    if (!text) return res.status(400).json({ error: 'text is required' });
-
-    const audioBase64 = await sarvam.textToSpeech(text, languageCode);
-    if (!audioBase64) {
-      return res.status(502).json({ error: 'TTS generation failed' });
-    }
-    res.json({ audio: audioBase64 });
+    const { text, languageCode } = req.body;
+    const audio = await textToSpeech(text, languageCode || 'en-IN');
+    res.json({ audio });
   } catch (err) {
-    res.status(500).json({ error: 'Text-to-speech failed', debug: err.message });
+    console.error('[voice/tts] Error:', err.message);
+    res.status(500).json({ error: 'TTS failed' });
   }
 });
 

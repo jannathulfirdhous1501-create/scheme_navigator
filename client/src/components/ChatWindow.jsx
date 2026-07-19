@@ -7,6 +7,7 @@ import VoiceInput from './VoiceInput';
 export default function ChatWindow() {
   const { messages, loading, send } = useChat();
   const [input, setInput] = useState('');
+  const [language] = useState('en-IN'); // swap for a language selector later if needed
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -35,7 +36,9 @@ export default function ChatWindow() {
             <QuickChips onSelect={send} />
           </div>
         )}
-        {messages.map((m, i) => <MessageBubble key={i} message={m} />)}
+        {messages.map((m, i) => (
+          <MessageBubble key={i} message={m} language={language} />
+        ))}
         {loading && <div className="typing">Yojana Mitra is thinking…</div>}
       </div>
 

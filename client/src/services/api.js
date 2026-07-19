@@ -13,7 +13,7 @@ export async function speechToText(audioBlob) {
   const { data } = await axios.post(`${API_URL}/voice/stt`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
-  return data; // { transcript, languageCode }
+  return data;
 }
 export async function textToSpeech(text, languageCode) {
   const { data } = await axios.post(`${API_URL}/voice/tts`, { text, languageCode });
